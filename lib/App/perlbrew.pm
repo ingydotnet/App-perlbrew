@@ -366,44 +366,6 @@ INSTRUCTION
 sub run_command_install {
     my ( $self, $dist, $opts ) = @_;
 
-    unless ($dist) {
-        require File::Copy;
-
-        my $executable = $0;
-
-        unless (File::Spec->file_name_is_absolute($executable)) {
-            $executable = File::Spec->rel2abs($executable);
-        }
-
-        my $target = catfile($ROOT, "bin", "perlbrew");
-        if ($executable eq $target) {
-            print "You are already running the installed perlbrew:\n\n    $executable\n";
-            exit;
-        }
-
-        mkpath("$ROOT/bin");
-        File::Copy::copy($executable, $target);
-        chmod(0755, $target);
-
-        my $path = $self->path_with_tilde($target);
-
-        print <<HELP;
-The perlbrew is installed as:
-
-    $path
-
-You may trash the downloaded $executable from now on.
-
-Next, if this is the first time you install perlbrew, run:
-
-    $path init
-
-And follow the instruction on screen.
-HELP
-
-        return;
-    }
-
     my ($dist_name, $dist_version) = $dist =~ m/^(.*)-([\d.]+(?:-RC\d+)?|git)$/;
     my $dist_git_describe;
 
@@ -554,6 +516,43 @@ FAIL
     }
 }
 
+sub run_command_upgrade {
+    my ( $self ) = @_;
+    require File::Copy;
+
+    my $executable = $0;
+
+    unless (File::Spec->file_name_is_absolute($executable)) {
+        $executable = File::Spec->rel2abs($executable);
+    }
+
+    my $target = catfile($ROOT, "bin", "perlbrew");
+    if ($executable eq $target) {
+        print "You are already running the installed perlbrew:\n\n    $executable\n";
+        exit;
+    }
+
+    mkpath("$ROOT/bin");
+    File::Copy::copy($executable, $target);
+    chmod(0755, $target);
+
+    my $path = $self->path_with_tilde($target);
+
+    print <<HELP;
+The perlbrew is installed as:
+
+    $path
+
+You may trash the downloaded $executable from now on.
+
+Next, if this is the first time you install perlbrew, run:
+
+    $path init
+
+And follow the instruction on screen.
+HELP
+}
+
 sub format_perl_version {
     my $self    = shift;
     my $version = shift;
@@ -561,7 +560,6 @@ sub format_perl_version {
       substr( $version, 0, 1 ),
       substr( $version, 2, 3 ),
       substr( $version, 5 );
-
 }
 
 sub installed_perls {
